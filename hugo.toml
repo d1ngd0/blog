@@ -1,5 +1,0 @@
-baseURL = 'https://pages.github.com/d1ngd0/blog/'
-languageCode = 'en-us'
-title = 'Paul Montag Blog'
-
-theme = [ 'PaperMod' ]
