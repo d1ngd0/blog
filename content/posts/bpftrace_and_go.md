@@ -182,3 +182,59 @@ uprobe:/home/paul/Projects/go-play/go-play:main.neatFunction+0x17d {
 TAKE THAT GUNTHER!!! WHO'S A "ReAl ProGrAMeR" NOW!!!! Sorry, sorry... Let's move on.
 
 ### Dumping Function Parameters
+
+Lets start with a new go program. People like to write add functions at times like these... So let's write a minus!
+
+```go
+func main() {
+	for {
+		minus(22, 12)
+		time.Sleep(1 * time.Second)
+	}
+}
+
+//go:noinline
+func minus(a, b int) int {
+	return a - b
+}
+```
+
+Lets dump the assembly for the main function so we can see where the parameters are being set before calling the function.
+
+```
+❯ objdump --disassemble=main.main go-play
+0000000000458d60 <main.main>:
+	...
+  458d6e:	b8 16 00 00 00       	mov    $0x16,%eax
+  458d73:	bb 0c 00 00 00       	mov    $0xc,%ebx
+  458d78:	e8 23 00 00 00       	call   458da0 <main.minus>
+	...
+```
+
+I have removed all the stuff that isn't part of the function call.
+
+`mov $0x16,%eax`: The keen eyed of you may realize that `0x16` is hexidecimal for 22. The `mov` instruction is used to copy data from one place to another. The place it is copying it `%eax` is a [register](https://en.wikipedia.org/wiki/Processor_register) on the CPU. This means our `minus` function assumes our first parameter will be in register `%eax`.
+
+`mov $0xc,%ebx`: does the same thing, but for the second argument. `0xc` is hexidecimal for 12, and we are loading 12 into `%ebx`.
+
+`call 458da0`: calls the function. The definition for which is at address `0x458da0`.
+
+Armed with this new knowlegde we can grab the values being passed into the function like so.
+
+```
+#!/usr/bin/bpftrace
+
+uprobe:/home/paul/Projects/go-play/go-play:main.minus {
+	printf("minus(%d, %d)\n", reg("ax"), reg("bx"));
+}
+```
+
+Now we can run it
+
+```
+❯ sudo ./show_value.bt
+Attaching 1 probe...
+minus(22, 12)
+minus(22, 12)
+minus(22, 12)
+```
