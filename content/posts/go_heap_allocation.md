@@ -4,7 +4,7 @@ date = 2024-01-24T21:45:13-06:00
 draft = false
 +++
 
-Recently I found myself caring about performance. Usually, with go, you don't have to care if something is on the stack or the heap. Since Go is a garbage collected language all those details are taken care of for you. Worring about these things is a pre-optimization, and the community is very happy to tell you so. However, there is the rare event performance takes precidence, in which case the favor of garbage collection turns into a frustrating scavenger hunt.
+Recently I found myself caring about performance. Usually, with go, you don't have to care if something is on the stack or the heap. Since Go is a garbage collected language all those details are taken care of for you. Worrying about these things is a pre-optimization, and the community is very happy to tell you so. However, there is the rare event performance takes precedence, in which case the favor of garbage collection turns into a frustrating scavenger hunt.
 
 Lets write a simple benchmark so we can start looking for allocations.
 
@@ -30,7 +30,7 @@ func BenchmarkNew(b *testing.B) {
 }
 ```
 
-We want to run our benchmarks and capture memory statistics. To do this we can use the `-memprofile` flag for `go test`. This will generate a memory profile which will help find where our allocations are occuring. We can also get a count of allocations to the heap during each loop in our benchmark by passing the `-benchmem` flag.
+We want to run our benchmarks and capture memory statistics. To do this we can use the `-memprofile` flag for `go test`. This will generate a memory profile which will help find where our allocations are occurring. We can also get a count of allocations to the heap during each loop in our benchmark by passing the `-benchmem` flag.
 
 ```
 ❯ go test -run='^$' -bench=BenchmarkNew -memprofile=mem.out -benchmem .
@@ -43,7 +43,7 @@ PASS
 ok  	github.com/d1ngd0/go-play	1.906s
 ```
 
-So our code has 2 memory allocations per run. We can use the `go tool pprof` command to look through our memory profile and figure out where exactly the allocations are occuring.
+So our code has 2 memory allocations per run. We can use the `go tool pprof` command to look through our memory profile and figure out where exactly the allocations are occurring.
 
 ```
 ❯ go tool pprof mem.out
@@ -200,4 +200,4 @@ ROUTINE ======================== github.com/d1ngd0/go-play.BenchmarkNew in /home
          .          .     32:	}
 ```
 
-Now we can see where the allocations are really occuring.
+Now we can see where the allocations are really occurring.
