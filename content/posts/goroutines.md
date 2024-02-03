@@ -28,6 +28,8 @@ By default `GOMAXPROCS` is set to the number of cores on the machine. So it migh
 
 Well fine then! So yeah, your goroutine is going to bounce around across threads while running. At least according to the doc. We can verify this is the case with BPFtrace.
 
+<sub>On a side note if you want to see some tea around this subject I stumbled on [this](https://github.com/golang/go/issues/23758)</sub>
+
 # Sources or whatever
 
 [Scheduler Design Doc](https://golang.org/s/go11sched)
