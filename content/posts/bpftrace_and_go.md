@@ -82,7 +82,7 @@ func neatFunction(cond1, cond2, cond3 bool) {
 }
 ```
 
-"Real Programmers" love to shit on this... Let me tell you, reaching for a debugger is sometimes the right thing to do, and even though GuNThEr is right that you should learn [delve](https://github.com/go-delve/delve), this is a perfectly reasonable solution. However, if you are debugging in a test or prod environment, you can't keep recompiling and launching new binaries. So how can we re-create the logic above with BPFtrace? By dumping the assembly and doing offsets! (Oh God I am sorry)
+"Real Programmers" love to shit on this... Let me tell you, reaching for a debugger is sometimes the right thing to do, and even though GuNThEr is right that you should learn [delve](https://github.com/go-delve/delve), this is a perfectly reasonable solution. However, if you are debugging in a test or prod environment, you can't keep recompiling and launching new binaries. So how can we re-create the logic above with BPFtrace? By reading the assembly! (Oh God I am sorry)
 
 So to start lets grab the symbol we are looking for:
 
@@ -107,22 +107,7 @@ Disassembly of section .text:
   [A bunch more assembly]
 ```
 
-Now, I am no assembly expert, and you don't have to be either because ChatGPT exists. We just need to know what our offset is going to be. Lets print out all the functions we `call` in our function:
-
-```
-❯ objdump --disassemble=main.neatFunction go-play | grep call
-  47b108:	e8 53 ae ff ff       	call   475f60 <fmt.Fprintln>
-  47b146:	e8 15 ae ff ff       	call   475f60 <fmt.Fprintln>
-  47b184:	e8 d7 ad ff ff       	call   475f60 <fmt.Fprintln>
-  47b1ce:	e8 8d ad ff ff       	call   475f60 <fmt.Fprintln>
-  47b218:	e8 43 ad ff ff       	call   475f60 <fmt.Fprintln>
-  47b256:	e8 05 ad ff ff       	call   475f60 <fmt.Fprintln>
-  47b270:	e8 ab fa fd ff       	call   45ad20 <runtime.morestack_noctxt.abi0>
-```
-
-<sub>The call to `<runtime.morestack_noctxt.abi0>` is golang checking the stack size and increasing it if it is too small. Cool stuff, but out of scope for what I am talking about now.</sub>
-
-Here you can see all of our original `here` debugging we are doing. We can also find all the places our if statements are running by searching for `test`. I am also going to include the next instruction after test, which will jump to a new location in the program if the condition was true:
+Now, I am no assembly expert, and you don't have to be either because ChatGPT exists. We just need to know what address we want to hijack. Lets find all the places our if statements are running by searching for `test`. I am also going to include the next instruction after test, which will jump to a new location in the program based on the previous condition:
 
 ```go
 ❯ objdump --disassemble=main.neatFunction go-play | grep test -A 1
@@ -136,7 +121,7 @@ Here you can see all of our original `here` debugging we are doing. We can also 
   48283d:	74 3e                	je     48287d <main.neatFunction+0x17d>
 ```
 
-Look at that, three matches, just like our three conditions! And we even get symbols to where it jumps to. **BUT HOLD ON**: With assembly things are often not what they seem. In the first example we compare `%al` to itself. This sets the appropriate flags for out next jump instruction. If the Zero Flag (ZF) is set, meaning that the result of the previous TEST operation indicated that `%al` is zero, the program will jump to the address `48276d`. In other words, we jump when false! This is used to skip instructions... the instructions skipped are the contents of our if statement. This becomes a whole lot clearer when using `--visualize-jumps=color`
+Look at that, three matches, just like our three conditions! And we even get symbols to where it jumps to. **BUT HOLD ON**: With assembly things are often not what they seem. In the first example we compare `%al` to itself. This sets the appropriate flags for our next jump instruction. If the Zero Flag (ZF) is set, meaning that the result of the previous TEST operation indicated that `%al` is zero, the program will jump to the address `48276d`. In other words, we jump when false! This is used to skip instructions... the instructions skipped are the contents of our if statement. This becomes a whole lot clearer when using `--visualize-jumps=color`
 
 ```
 ❯ objdump --disassemble=main.neatFunction --visualize-jumps=color go-play
