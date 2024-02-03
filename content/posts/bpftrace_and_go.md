@@ -234,7 +234,7 @@ minus(22, 12)
 
 ### string parameters
 
-Sure, this is where things get a little harder. BPFtrace has a whole load of helper [functions](https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#functions) one of them being the [str](https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#5-str-strings) function. This takes a pointer to a string, and then the length of the string. Lets write a function that takes a string as an argument and then look at the call signature to figure out what the memory shape of a string is.
+BPFtrace has a whole load of helper [functions](https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#functions) one of them being the [str](https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#5-str-strings) function. This takes a pointer to a string, and then the length of the string. Lets write a function that takes a string as an argument and then look at the call signature to figure out what the memory shape of a string is.
 
 <sub>main.go</sub>
 ```go
