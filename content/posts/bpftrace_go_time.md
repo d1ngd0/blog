@@ -1,6 +1,6 @@
 +++
 title = 'Grabbing a Go Time with BPFTrace'
-date = 2024-10-06T08:45:05-06:00
+date = 2024-10-07T06:22:18-05:00
 draft = false
 +++
 

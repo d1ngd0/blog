@@ -1,6 +1,7 @@
 baseURL: "https://d1ngd0.github.io/blog/"
 title: Paul Montag
-paginate: 5
+pagination:
+  pagerSize: 5
 theme: PaperMod
 
 enableRobotsTXT: true
